@@ -1,0 +1,38 @@
+dielectric_constants:
+  DIELECTRIC: 3.15
+  METAL: 1.0
+  VACUUM: 1.0
+extract_opt:
+- additional_name: null
+  coordinate1: &id001
+  - -1.5
+  - 1.5
+  - 71
+  coordinate2: &id002
+  - -0.5
+  - 0.6
+  - 71
+  coordinate3: 0
+  plane: xz
+  quantity: Ez
+- additional_name: null
+  coordinate1: *id001
+  coordinate2: *id002
+  coordinate3: 0
+  plane: xz
+  quantity: phi
+- additional_name: null
+  coordinate1: null
+  coordinate2: null
+  coordinate3: null
+  plane: null
+  quantity: Cm
+ff_polynomial: 2
+meshfile: idc
+physicalSurfaces:
+  metal1: 4
+  metal2: 5
+physicalVolumes:
+  DIELECTRIC: 2
+  METAL: 1
+  VACUUM: 3

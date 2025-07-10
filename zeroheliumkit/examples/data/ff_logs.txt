@@ -1,0 +1,185 @@
+-- FreeFem++ v4.15 (Wed Dec 11 16:48:56 CET 2024 - git v4.15-7-gb1e524c8c)
+   file : idc.edp
+ Load: lg_fem lg_mesh lg_mesh3 eigenvalue 
+    1 : 
+    2 : 
+    3 : //////////////////////////////////////////////////////////
+    4 : //
+    5 : //    ELECTROSTATIC POTENTIAL
+    6 : //
+    7 : //////////////////////////////////////////////////////////
+    8 : 
+    9 : load "msh3" (already loaded: msh3)
+   10 : load "gmsh"(load: loadLibary C:\Program Files (x86)\FreeFem++\\.\gmsh = 0)
+   11 : load "medit"(load: loadLibary C:\Program Files (x86)\FreeFem++\\.\medit = 0)
+   12 : 
+   13 : mesh3 Th = gmshload3("idc.msh2");
+   14 : 
+   15 : int n1, n2, n3;
+   16 : real xmin, xmax, ymin, ymax, ax3, zmin, zmax;
+   17 : string[int] electrodenames = ["metal1","metal2"];
+   18 : int[int] electrodeid = [4, 5];
+   19 : 
+   20 : int numV = 2;
+   21 : real[int, int] V(numV, numV);
+   22 : for (int i = 0; i < numV; i+= 1){
+   23 :     for (int j = 0; j < numV; j+= 1){
+   24 :         if (i == j) {V(i, j) = 1.0;}
+   25 :         else {V(i, j) = 1e-5;}}}
+   26 : 
+   27 : real[int, int] CapacitanceMatrix(numV, numV);
+   28 : for (int i = 0; i < numV; i+= 1){
+   29 :     for (int j = 0; j < numV; j+= 1){
+   30 :         CapacitanceMatrix(i, j) = 0.0;}}
+   31 : 
+   32 : ofstream extract0Ez("Ez_xz.txt");
+   33 : ofstream extract1phi("phi_xz.txt");
+   34 : ofstream extract2Cm("Cm.txt");
+   35 : 
+   36 : fespace Vh(Th,P23d);
+   37 : fespace FunctionRegion(Th,P03d);
+   38 : real eps = 1e-6;
+   39 : macro norm [N.x,N.y,N.z] //
+   40 : macro Grad(u) [dx(u),dy(u),dz(u)]  )  //
+   41 : macro field(u,x,y,z) [dx(u)(x,y,z),dy(u)(x,y,z),dz(u)(x,y,z)]  )  //
+   42 :  
+   43 : Vh u,v;
+   44 : FunctionRegion dielectric =
+   45 :                           + 3.15 * (region == 2)
+   46 :                           + 1.0 * (region == 1)
+   47 :                           + 1.0 * (region == 3)
+   48 :                           ;
+   49 : for(int k = 0; k < numV; k++){
+   50 :     problem Electro(u,v,solver=CG) =
+   51 :                     int3d(Th)(dielectric * Grad(u)   [dx(u),dy(u),dz(u)] ' * Grad(v)   [dx(v),dy(v),dz(v)] )
+   52 :                     + on(4,u = V(k,0))
+   53 :                     + on(5,u = V(k,1))
+   54 :                     ;
+   55 :     cout << "I'm on iteration " << k + 1 << "/" << numV << endl;
+   56 :     Electro;
+   57 :     cout << "calculations are finished, saving data" << endl;
+   58 :  
+   59 : 
+   60 : //////////////////////////////////////////////////////////
+   61 : //
+   62 : //    2D DATA EXTRACTION BLOCK START
+   63 : //
+   64 : //////////////////////////////////////////////////////////
+   65 : 
+   66 :     {
+   67 :     n1 = 71;
+   68 :     n2 = 71;
+   69 :     xmin = -1.5;
+   70 :     xmax = 1.5;
+   71 :     ymin = -0.5;
+   72 :     ymax = 0.6;
+   73 :     ax3  = 0;
+   74 :     real[int,int] quantity(n1,n2);
+   75 :     real[int] xList(n1), yList(n2);
+   76 :  
+   77 :     for(int i = 0; i < n1; i++){
+   78 :         real ax1 = xmin + i*(xmax-xmin)/(n1-1);
+   79 :         xList[i] = ax1;
+   80 :         for(int j = 0; j < n2; j++){
+   81 :             real ax2 = ymin + j*(ymax-ymin)/(n2-1);
+   82 :             yList[j] = ax2;
+   83 :             quantity(i,j) = dz(u)(ax1,ax3,ax2);}}
+   84 :  
+   85 :     extract0Ez << "startDATA " + electrodenames[k] + " ";
+   86 :     extract0Ez << quantity << endl;
+   87 :     extract0Ez << "END" << endl;
+   88 :     if (k == numV - 1){
+   89 :         extract0Ez << "startXY xlist ";
+   90 :         extract0Ez << xList << endl;
+   91 :         extract0Ez << "END" << endl;
+   92 :         extract0Ez << "startXY ylist ";
+   93 :         extract0Ez << yList << endl;
+   94 :         extract0Ez << "END" << endl;}
+   95 :     }
+   96 : 
+   97 : //////////////////////////////////////////////////////////
+   98 : //
+   99 : //    2D DATA EXTRACTION BLOCK END
+  100 : //
+  101 : //////////////////////////////////////////////////////////
+  102 : 
+  103 : 
+  104 : //////////////////////////////////////////////////////////
+  105 : //
+  106 : //    2D DATA EXTRACTION BLOCK START
+  107 : //
+  108 : //////////////////////////////////////////////////////////
+  109 : 
+  110 :     {
+  111 :     n1 = 71;
+  112 :     n2 = 71;
+  113 :     xmin = -1.5;
+  114 :     xmax = 1.5;
+  115 :     ymin = -0.5;
+  116 :     ymax = 0.6;
+  117 :     ax3  = 0;
+  118 :     real[int,int] quantity(n1,n2);
+  119 :     real[int] xList(n1), yList(n2);
+  120 :  
+  121 :     for(int i = 0; i < n1; i++){
+  122 :         real ax1 = xmin + i*(xmax-xmin)/(n1-1);
+  123 :         xList[i] = ax1;
+  124 :         for(int j = 0; j < n2; j++){
+  125 :             real ax2 = ymin + j*(ymax-ymin)/(n2-1);
+  126 :             yList[j] = ax2;
+  127 :             quantity(i,j) = u(ax1,ax3,ax2);}}
+  128 :  
+  129 :     extract1phi << "startDATA " + electrodenames[k] + " ";
+  130 :     extract1phi << quantity << endl;
+  131 :     extract1phi << "END" << endl;
+  132 :     if (k == numV - 1){
+  133 :         extract1phi << "startXY xlist ";
+  134 :         extract1phi << xList << endl;
+  135 :         extract1phi << "END" << endl;
+  136 :         extract1phi << "startXY ylist ";
+  137 :         extract1phi << yList << endl;
+  138 :         extract1phi << "END" << endl;}
+  139 :     }
+  140 : 
+  141 : //////////////////////////////////////////////////////////
+  142 : //
+  143 : //    2D DATA EXTRACTION BLOCK END
+  144 : //
+  145 : //////////////////////////////////////////////////////////
+  146 : 
+  147 :     {
+  148 :     for(int i = k; i < numV; i++){
+  149 :         real charge = int2d(Th,electrodeid[i])((dielectric(x + eps*N.x, y + eps*N.y, z + eps*N.z) * field(u, x + eps*N.x, y + eps*N.y, z + eps*N.z)   [dx(u)( x + eps*N.x, y + eps*N.y, z + eps*N.z),dy(u)( x + eps*N.x, y + eps*N.y, z + eps*N.z),dz(u)( x + eps*N.x, y + eps*N.y, z + eps*N.z)] ' * norm [N.x,N.y,N.z] 
+  150 :                                               - dielectric(x - eps*N.x, y - eps*N.y, z - eps*N.z) * field(u, x - eps*N.x, y - eps*N.y, z - eps*N.z)   [dx(u)( x - eps*N.x, y - eps*N.y, z - eps*N.z),dy(u)( x - eps*N.x, y - eps*N.y, z - eps*N.z),dz(u)( x - eps*N.x, y - eps*N.y, z - eps*N.z)] ' * norm [N.x,N.y,N.z] ));
+  151 :         CapacitanceMatrix(k,i) = charge;
+  152 :         CapacitanceMatrix(i,k) = charge;}
+  153 :     if (k == numV - 1){
+  154 :         extract2Cm << electrodenames << endl;
+  155 :         extract2Cm << CapacitanceMatrix << endl;}
+  156 :     }
+  157 : }
+  158 :  sizestack + 1024 =3824  ( 2800 )
+
+508716 tetrahedrons
+56580 triangles
+565296 numElements
+  -- Build Nodes/DF on mesh :   n.v. 83684, n. elmt. 508716, n b. elmt. 56580
+     nb of Nodes 676417    nb of DoF   676417  DFon=1100
+  -- FESpace: Nb of Nodes 676417 Nb of DoF 676417
+  -- Build Nodes/DF on mesh :   n.v. 83684, n. elmt. 508716, n b. elmt. 56580
+     nb of Nodes 508716    nb of DoF   508716  DFon=0001
+  -- FESpace: Nb of Nodes 508716 Nb of DoF 508716
+I'm on iteration 1/2
+ GC:  converge after 210 g=2.99233e-09 rho= 1.65277 gamma= 0.923419
+  -- Solve : 
+          min 9.99095e-06  max 1.00001
+calculations are finished, saving data
+I'm on iteration 2/2
+ GC:  converge after 207 g=5.22229e-09 rho= 1.57253 gamma= 0.837311
+  -- Solve : 
+          min 5.69851e-06  max 1
+calculations are finished, saving data
+times: compile 0.017s, execution 67.665s,  mpirank:0
+ ######## unfreed pointers   207 Nb pointer,   0Bytes  ,  mpirank 0, memory leak =0
+ CodeAlloc : nb ptr  4765,  size :556168 mpirank: 0
+Ok: Normal End

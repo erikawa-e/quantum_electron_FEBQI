@@ -1,0 +1,157 @@
+
+
+//////////////////////////////////////////////////////////
+//
+//    ELECTROSTATIC POTENTIAL
+//
+//////////////////////////////////////////////////////////
+
+load "msh3"
+load "gmsh"
+load "medit"
+
+mesh3 Th = gmshload3("idc.msh2");
+
+int n1, n2, n3;
+real xmin, xmax, ymin, ymax, ax3, zmin, zmax;
+string[int] electrodenames = ["metal1","metal2"];
+int[int] electrodeid = [4, 5];
+
+int numV = 2;
+real[int, int] V(numV, numV);
+for (int i = 0; i < numV; i+= 1){
+    for (int j = 0; j < numV; j+= 1){
+        if (i == j) {V(i, j) = 1.0;}
+        else {V(i, j) = 1e-5;}}}
+
+real[int, int] CapacitanceMatrix(numV, numV);
+for (int i = 0; i < numV; i+= 1){
+    for (int j = 0; j < numV; j+= 1){
+        CapacitanceMatrix(i, j) = 0.0;}}
+
+ofstream extract0Ez("Ez_xz.txt");
+ofstream extract1phi("phi_xz.txt");
+ofstream extract2Cm("Cm.txt");
+
+fespace Vh(Th,P23d);
+fespace FunctionRegion(Th,P03d);
+real eps = 1e-6;
+macro norm [N.x,N.y,N.z] //
+macro Grad(u) [dx(u),dy(u),dz(u)] //
+macro field(u,x,y,z) [dx(u)(x,y,z),dy(u)(x,y,z),dz(u)(x,y,z)] //
+ 
+Vh u,v;
+FunctionRegion dielectric =
+                          + 3.15 * (region == 2)
+                          + 1.0 * (region == 1)
+                          + 1.0 * (region == 3)
+                          ;
+for(int k = 0; k < numV; k++){
+    problem Electro(u,v,solver=CG) =
+                    int3d(Th)(dielectric * Grad(u)' * Grad(v))
+                    + on(4,u = V(k,0))
+                    + on(5,u = V(k,1))
+                    ;
+    cout << "I'm on iteration " << k + 1 << "/" << numV << endl;
+    Electro;
+    cout << "calculations are finished, saving data" << endl;
+ 
+
+//////////////////////////////////////////////////////////
+//
+//    2D DATA EXTRACTION BLOCK START
+//
+//////////////////////////////////////////////////////////
+
+    {
+    n1 = 71;
+    n2 = 71;
+    xmin = -1.5;
+    xmax = 1.5;
+    ymin = -0.5;
+    ymax = 0.6;
+    ax3  = 0;
+    real[int,int] quantity(n1,n2);
+    real[int] xList(n1), yList(n2);
+ 
+    for(int i = 0; i < n1; i++){
+        real ax1 = xmin + i*(xmax-xmin)/(n1-1);
+        xList[i] = ax1;
+        for(int j = 0; j < n2; j++){
+            real ax2 = ymin + j*(ymax-ymin)/(n2-1);
+            yList[j] = ax2;
+            quantity(i,j) = dz(u)(ax1,ax3,ax2);}}
+ 
+    extract0Ez << "startDATA " + electrodenames[k] + " ";
+    extract0Ez << quantity << endl;
+    extract0Ez << "END" << endl;
+    if (k == numV - 1){
+        extract0Ez << "startXY xlist ";
+        extract0Ez << xList << endl;
+        extract0Ez << "END" << endl;
+        extract0Ez << "startXY ylist ";
+        extract0Ez << yList << endl;
+        extract0Ez << "END" << endl;}
+    }
+
+//////////////////////////////////////////////////////////
+//
+//    2D DATA EXTRACTION BLOCK END
+//
+//////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////
+//
+//    2D DATA EXTRACTION BLOCK START
+//
+//////////////////////////////////////////////////////////
+
+    {
+    n1 = 71;
+    n2 = 71;
+    xmin = -1.5;
+    xmax = 1.5;
+    ymin = -0.5;
+    ymax = 0.6;
+    ax3  = 0;
+    real[int,int] quantity(n1,n2);
+    real[int] xList(n1), yList(n2);
+ 
+    for(int i = 0; i < n1; i++){
+        real ax1 = xmin + i*(xmax-xmin)/(n1-1);
+        xList[i] = ax1;
+        for(int j = 0; j < n2; j++){
+            real ax2 = ymin + j*(ymax-ymin)/(n2-1);
+            yList[j] = ax2;
+            quantity(i,j) = u(ax1,ax3,ax2);}}
+ 
+    extract1phi << "startDATA " + electrodenames[k] + " ";
+    extract1phi << quantity << endl;
+    extract1phi << "END" << endl;
+    if (k == numV - 1){
+        extract1phi << "startXY xlist ";
+        extract1phi << xList << endl;
+        extract1phi << "END" << endl;
+        extract1phi << "startXY ylist ";
+        extract1phi << yList << endl;
+        extract1phi << "END" << endl;}
+    }
+
+//////////////////////////////////////////////////////////
+//
+//    2D DATA EXTRACTION BLOCK END
+//
+//////////////////////////////////////////////////////////
+
+    {
+    for(int i = k; i < numV; i++){
+        real charge = int2d(Th,electrodeid[i])((dielectric(x + eps*N.x, y + eps*N.y, z + eps*N.z) * field(u, x + eps*N.x, y + eps*N.y, z + eps*N.z)' * norm
+                                              - dielectric(x - eps*N.x, y - eps*N.y, z - eps*N.z) * field(u, x - eps*N.x, y - eps*N.y, z - eps*N.z)' * norm));
+        CapacitanceMatrix(k,i) = charge;
+        CapacitanceMatrix(i,k) = charge;}
+    if (k == numV - 1){
+        extract2Cm << electrodenames << endl;
+        extract2Cm << CapacitanceMatrix << endl;}
+    }
+}
