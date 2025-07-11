@@ -1,0 +1,45 @@
+dielectric_constants:
+  DIELECTRIC: 10.5
+  HELIUM: 1.057
+  METAL: 1.0
+  VACUUM: 1.0
+extract_opt:
+- additional_name: null
+  coordinate1: &id001
+  - -5
+  - 5
+  - 101
+  coordinate2: *id001
+  coordinate3: 0.45
+  plane: xy
+  quantity: Ex
+- additional_name: null
+  coordinate1: *id001
+  coordinate2: *id001
+  coordinate3: 0.45
+  plane: xy
+  quantity: Ey
+- additional_name: null
+  coordinate1: &id002
+  - -5
+  - 5
+  - 501
+  coordinate2: *id002
+  coordinate3: 0.45
+  plane: xy
+  quantity: phi
+ff_polynomial: 2
+meshfile: sim2/sim2
+physicalSurfaces:
+  center: 10
+  gate_bottom: 8
+  gate_top: 7
+  guard: 11
+  half_donut_bottom: 6
+  half_donut_top: 5
+  reservoir: 9
+physicalVolumes:
+  DIELECTRIC: 3
+  HELIUM: 4
+  METAL: 1
+  VACUUM: 2
