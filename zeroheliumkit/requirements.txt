@@ -1,0 +1,11 @@
+alive_progress==3.1.1
+ezdxf==1.0.3
+gdspy==1.6.12
+gmsh==4.11.1
+matplotlib==3.7.1
+# numpy==1.24.3
+PyYAML==6.0.1
+# scipy==1.11.4
+# Shapely==2.0.2
+tabulate==0.9.0
+svgpathtools==1.6.1
