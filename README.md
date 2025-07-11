@@ -49,6 +49,13 @@ pip install -e .
 
 ---
 
-## ✅ Done
+## ✅ Installation Done
 
 Your Python environment is now ready for development and running the code.
+
+Run
+quantum_electron_FEBQI/thomas_simulations/resevoir_sample.ipynb
+
+quantum_electron_FEBQI/thomas_simulations/sim_test/sample_resevoir_10x10_no_bond_lines.dxf
+is the geometry of our sample.
+
