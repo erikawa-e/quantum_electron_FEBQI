@@ -59,7 +59,4 @@ quantum_electron_FEBQI/thomas_simulations/resevoir_sample.ipynb
 quantum_electron_FEBQI/thomas_simulations/sim_test/sample_resevoir_10x10_no_bond_lines.dxf
 is the geometry of our sample.
 
-<img width="1487" height="804" alt="SampleFig" src="https://github.com/user-attachments/assets/7dcbda32-434a-4415-919f-15d4c3c18fff" />
-
-<img width="1539" height="520" alt="SampleFig2" src="https://github.com/user-attachments/assets/566df6b1-9fd1-4628-ace9-d77da8a19772" />
-
+<img width="951" height="656" alt="image" src="https://github.com/user-attachments/assets/eac47702-ca57-49fd-b3bb-12f07efec4db" />
