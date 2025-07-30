@@ -60,3 +60,5 @@ quantum_electron_FEBQI/thomas_simulations/sim_test/sample_resevoir_10x10_no_bond
 is the geometry of our sample.
 
 <img width="951" height="656" alt="image" src="https://github.com/user-attachments/assets/eac47702-ca57-49fd-b3bb-12f07efec4db" />
+
+<img width="304" height="471" alt="image" src="https://github.com/user-attachments/assets/9124bc47-41e1-4637-a4b8-12f3b43c91f0" />
